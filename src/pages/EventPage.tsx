@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Layout } from "../components/Layout/Layout";
 import { Card, CardContent } from "../components/ui/card";
 import { CalendarIcon, ClockIcon, MapPinIcon } from "lucide-react";
-import { db, Event } from "../lib/db";
+import { Event } from "../lib/db"; // Keep type definition
+
+const API_BASE_URL = 'http://localhost:3001/api';
 
 export const EventPage = (): JSX.Element => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -14,10 +16,11 @@ export const EventPage = (): JSX.Element => {
 
   const fetchEvents = async () => {
     try {
-      const [rows] = await db.query(
-        "SELECT * FROM events WHERE is_active = true ORDER BY event_date DESC"
-      );
-      setEvents(rows as Event[]);
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/events`);
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+      setEvents(data);
     } catch (err) {
       console.error("Error fetching events:", err);
     } finally {

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Layout } from "../components/Layout/Layout";
 import { Card, CardContent } from "../components/ui/card";
-import { db, OrganizationMember } from "../lib/db";
+import { OrganizationMember } from "../lib/db"; // Keep type definition
+
+const API_BASE_URL = 'http://localhost:3001/api';
 
 export const StrukturOrganisasiPage = (): JSX.Element => {
   const [members, setMembers] = useState<OrganizationMember[]>([]);
@@ -13,10 +15,11 @@ export const StrukturOrganisasiPage = (): JSX.Element => {
 
   const fetchMembers = async () => {
     try {
-      const [rows] = await db.query(
-        "SELECT * FROM organization_members WHERE is_active = true ORDER BY order_index"
-      );
-      setMembers(rows as OrganizationMember[]);
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/organization-members`);
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+      setMembers(data);
     } catch (err) {
       console.error("Error fetching members:", err);
     } finally {

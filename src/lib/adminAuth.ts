@@ -1,8 +1,6 @@
-import pool from './mysql';
 import { AdminUser } from './db';
 
-// In a real application, use a library like bcrypt to handle password hashing
-const FAKE_PASSWORD_HASH = '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 export class AdminAuthService {
   private static instance: AdminAuthService;
@@ -29,20 +27,22 @@ export class AdminAuthService {
 
   public async login(username: string, password: string): Promise<{ success: boolean; error?: string; user?: AdminUser }> {
     try {
-      // For demo purposes, we'll use a simple credential check
-      if (username === 'ADMIN' && password === 'ADMINRRI22') {
-        const [rows] = await pool.execute('SELECT * FROM admin_users WHERE username = ?', [username]);
-        const users = rows as AdminUser[];
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
 
-        if (users.length > 0) {
-          const user = users[0];
-          // In a real app, you would compare the hashed password
-          this.currentUser = user;
-          localStorage.setItem('admin_user', JSON.stringify(user));
-          return { success: true, user };
-        }
+      if (!response.ok) {
+        const errorData = await response.json();
+        return { success: false, error: errorData.error || 'Login failed' };
       }
-      return { success: false, error: 'Invalid username or password' };
+
+      const data = await response.json();
+      this.currentUser = data.user;
+      localStorage.setItem('admin_user', JSON.stringify(data.user));
+      return { success: true, user: data.user };
+
     } catch (error) {
       return { success: false, error: 'Login failed. Please try again.' };
     }

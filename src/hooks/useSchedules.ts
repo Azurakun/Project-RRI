@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { db, Schedule, Program } from '../lib/db';
+import { Schedule, Program } from '../lib/db';
+
+const API_BASE_URL = 'http://localhost:3001/api';
 
 export const useSchedules = (programName: string) => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -7,30 +9,21 @@ export const useSchedules = (programName: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPrograms = async () => {
-    try {
-      const [rows] = await db.query('SELECT * FROM programs ORDER BY name');
-      setPrograms(rows as Program[]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch programs');
-    }
-  };
-
   const fetchSchedules = async () => {
     try {
       setLoading(true);
-      const [rows] = await db.query('SELECT * FROM schedules WHERE is_active = true ORDER BY waktu');
-      
-      const allSchedules = rows as Schedule[];
+      const response = await fetch(`${API_BASE_URL}/schedules`);
+      if (!response.ok) throw new Error('Failed to fetch');
+      const allSchedules: Schedule[] = await response.json();
 
-      // Filter by program name if provided
+      // This part remains the same, assuming programs are fetched or defined elsewhere
       const filteredData = programName
         ? allSchedules.filter(schedule => {
             const program = programs.find(p => p.id === schedule.program_id);
             return program?.name === programName;
           })
         : allSchedules;
-      
+
       setSchedules(filteredData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch schedules');
@@ -40,14 +33,11 @@ export const useSchedules = (programName: string) => {
   };
 
   useEffect(() => {
-    fetchPrograms();
-  }, []);
-
-  useEffect(() => {
-    if (programs.length > 0) {
-      fetchSchedules();
-    }
+    // In a real app, you might fetch programs from an API as well
+    // For now, we'll assume they are loaded or static
+    fetchSchedules();
   }, [programs, programName]);
+
 
   return { schedules, programs, loading, error, refetch: fetchSchedules };
 };

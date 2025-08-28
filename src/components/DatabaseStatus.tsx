@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
-import { 
-  CheckCircleIcon, 
-  XCircleIcon, 
-  AlertTriangleIcon, 
-  RefreshCwIcon,
-  DatabaseIcon,
-} from 'lucide-react';
-import { testConnection } from '../lib/mysql';
+import { CheckCircleIcon, XCircleIcon, AlertTriangleIcon, RefreshCwIcon, DatabaseIcon } from 'lucide-react';
+
+const API_BASE_URL = 'http://localhost:3001/api';
 
 export const DatabaseStatus = (): JSX.Element => {
   const [status, setStatus] = useState<'healthy' | 'degraded' | 'failed'>('degraded');
@@ -16,10 +11,16 @@ export const DatabaseStatus = (): JSX.Element => {
 
   const checkStatus = async () => {
     setIsRunningDiagnostics(true);
-    const isConnected = await testConnection();
-    setStatus(isConnected ? 'healthy' : 'failed');
-    setLastCheck(new Date());
-    setIsRunningDiagnostics(false);
+    try {
+      const response = await fetch(`${API_BASE_URL}/status`);
+      const data = await response.json();
+      setStatus(data.status);
+    } catch (error) {
+      setStatus('failed');
+    } finally {
+      setLastCheck(new Date());
+      setIsRunningDiagnostics(false);
+    }
   };
 
   useEffect(() => {
