@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '../ui/card';
-import { Schedule, Program } from '../../lib/supabase';
+import { Schedule, Program } from '../../lib/db';
 import { XIcon, SaveIcon, PlusIcon } from 'lucide-react';
 import { ImageUpload } from '../ImageUpload/ImageUpload';
 

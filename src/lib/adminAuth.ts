@@ -1,11 +1,8 @@
-import { supabase } from './supabase';
+import pool from './mysql';
+import { AdminUser } from './db';
 
-export interface AdminUser {
-  id: string;
-  username: string;
-  full_name: string;
-  role: string;
-}
+// In a real application, use a library like bcrypt to handle password hashing
+const FAKE_PASSWORD_HASH = '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
 
 export class AdminAuthService {
   private static instance: AdminAuthService;
@@ -32,29 +29,20 @@ export class AdminAuthService {
 
   public async login(username: string, password: string): Promise<{ success: boolean; error?: string; user?: AdminUser }> {
     try {
-      // For demo purposes, we'll use simple credential check
-      // In production, this should use proper password hashing
+      // For demo purposes, we'll use a simple credential check
       if (username === 'ADMIN' && password === 'ADMINRRI22') {
-        const user: AdminUser = {
-          id: 'admin-001',
-          username: 'ADMIN',
-          full_name: 'Administrator RRI Jambi',
-          role: 'admin'
-        };
+        const [rows] = await pool.execute('SELECT * FROM admin_users WHERE username = ?', [username]);
+        const users = rows as AdminUser[];
 
-        this.currentUser = user;
-        localStorage.setItem('admin_user', JSON.stringify(user));
-        
-        // Also set Supabase session for consistency
-        await supabase.auth.signInWithPassword({
-          email: 'admin@rrijambi.com',
-          password: 'admin123'
-        });
-
-        return { success: true, user };
-      } else {
-        return { success: false, error: 'Invalid username or password' };
+        if (users.length > 0) {
+          const user = users[0];
+          // In a real app, you would compare the hashed password
+          this.currentUser = user;
+          localStorage.setItem('admin_user', JSON.stringify(user));
+          return { success: true, user };
+        }
       }
+      return { success: false, error: 'Invalid username or password' };
     } catch (error) {
       return { success: false, error: 'Login failed. Please try again.' };
     }
@@ -63,12 +51,6 @@ export class AdminAuthService {
   public async logout(): Promise<void> {
     this.currentUser = null;
     localStorage.removeItem('admin_user');
-    try {
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.error('Supabase logout error:', error);
-    }
-    // Force page reload to ensure clean state
     window.location.href = '/';
   }
 

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '../../components/ui/card';
-import { PlusIcon, EditIcon, TrashIcon, CalendarIcon, SaveIcon, XIcon, MapPinIcon, ClockIcon } from 'lucide-react';
-import { supabase, Event, dbOperations } from '../../lib/supabase';
-import { ImageUpload } from '../../components/ImageUpload/ImageUpload';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent } from "../../components/ui/card";
+import { PlusIcon, EditIcon, TrashIcon, CalendarIcon, SaveIcon, XIcon, MapPinIcon, ClockIcon } from "lucide-react";
+import { db, Event } from "../../lib/db";
+import { ImageUpload } from "../../components/ImageUpload/ImageUpload";
 
 export const EventsPage = (): JSX.Element => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -31,16 +31,12 @@ export const EventsPage = (): JSX.Element => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .eq('is_active', true)
-        .order('event_date', { ascending: false });
-      
-      if (error) throw error;
-      setEvents(data || []);
+      const [rows] = await db.query(
+        "SELECT * FROM events WHERE is_active = true ORDER BY event_date DESC"
+      );
+      setEvents(rows as Event[]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch events');
+      setError(err instanceof Error ? err.message : "Failed to fetch events");
     } finally {
       setLoading(false);
     }

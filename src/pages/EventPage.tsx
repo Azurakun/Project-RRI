@@ -1,9 +1,8 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "../components/Layout/Layout";
 import { Card, CardContent } from "../components/ui/card";
 import { CalendarIcon, ClockIcon, MapPinIcon } from "lucide-react";
-import { supabase, Event } from "../lib/supabase";
+import { db, Event } from "../lib/db";
 
 export const EventPage = (): JSX.Element => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -15,35 +14,31 @@ export const EventPage = (): JSX.Element => {
 
   const fetchEvents = async () => {
     try {
-      const { data, error } = await supabase
-        .from('events')
-        .select('*')
-        .eq('is_active', true)
-        .order('event_date', { ascending: false });
-      
-      if (error) throw error;
-      setEvents(data || []);
+      const [rows] = await db.query(
+        "SELECT * FROM events WHERE is_active = true ORDER BY event_date DESC"
+      );
+      setEvents(rows as Event[]);
     } catch (err) {
-      console.error('Error fetching events:', err);
+      console.error("Error fetching events:", err);
     } finally {
       setLoading(false);
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   const formatTime = (timeString: string) => {
-    return timeString.slice(0, 5) + ' WIB';
+    return timeString.slice(0, 5) + " WIB";
   };
 
-  const currentEvents = events.filter(event => event.status === "upcoming");
-  const pastEvents = events.filter(event => event.status === "past");
+  const currentEvents = events.filter((event) => event.status === "upcoming");
+  const pastEvents = events.filter((event) => event.status === "past");
 
   return (
     <Layout>

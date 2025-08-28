@@ -1,8 +1,7 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "../components/Layout/Layout";
 import { Card, CardContent } from "../components/ui/card";
-import { supabase, OrganizationMember } from "../lib/supabase";
+import { db, OrganizationMember } from "../lib/db";
 
 export const StrukturOrganisasiPage = (): JSX.Element => {
   const [members, setMembers] = useState<OrganizationMember[]>([]);
@@ -14,16 +13,12 @@ export const StrukturOrganisasiPage = (): JSX.Element => {
 
   const fetchMembers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('organization_members')
-        .select('*')
-        .eq('is_active', true)
-        .order('order_index');
-      
-      if (error) throw error;
-      setMembers(data || []);
+      const [rows] = await db.query(
+        "SELECT * FROM organization_members WHERE is_active = true ORDER BY order_index"
+      );
+      setMembers(rows as OrganizationMember[]);
     } catch (err) {
-      console.error('Error fetching members:', err);
+      console.error("Error fetching members:", err);
     } finally {
       setLoading(false);
     }

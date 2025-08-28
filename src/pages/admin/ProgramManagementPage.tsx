@@ -4,7 +4,7 @@ import { PlusIcon, EditIcon, TrashIcon, RadioIcon, ImageIcon, SaveIcon, XIcon } 
 import { useSchedules } from '../../hooks/useSchedules';
 import { ScheduleForm } from '../../components/ScheduleForm';
 import { ImageUpload } from '../../components/ImageUpload/ImageUpload';
-import { Schedule } from '../../lib/supabase';
+import { Schedule } from '../../lib/db';
 
 export const ProgramManagementPage = (): JSX.Element => {
   const [selectedProgram, setSelectedProgram] = useState<string>('Pro 1');

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ChevronDownIcon, ChevronUpIcon, MicIcon } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
-import { Schedule } from "../../lib/supabase";
+import { Schedule } from "../../lib/db";
 
 interface ScheduleCardProps {
   item: Schedule;

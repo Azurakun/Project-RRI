@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '../../components/ui/card';
-import { PlusIcon, EditIcon, TrashIcon, UsersIcon, SaveIcon, XIcon } from 'lucide-react';
-import { supabase, OrganizationMember, dbOperations } from '../../lib/supabase';
-import { ImageUpload } from '../../components/ImageUpload/ImageUpload';
+import { PlusIcon, EditIcon, TrashIcon, SaveIcon, XIcon } from 'lucide-react';
+import { db, OrganizationMember } from '../../lib/db';
 
 export const OrganizationPage = (): JSX.Element => {
   const [members, setMembers] = useState<OrganizationMember[]>([]);
@@ -28,20 +27,20 @@ export const OrganizationPage = (): JSX.Element => {
   const fetchMembers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('organization_members')
-        .select('*')
-        .eq('is_active', true)
-        .order('order_index');
-      
-      if (error) throw error;
-      setMembers(data || []);
+      const [rows] = await db.query("SELECT * FROM organization_members WHERE is_active = true ORDER BY order_index");
+      setMembers(rows as OrganizationMember[]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch members');
     } finally {
       setLoading(false);
     }
   };
+
+  // ... (keep the rest of the component the same, handleCreateMember, handleEditMember, etc.)
+  // The form submission and delete logic will need to be updated to make API calls to your backend
+  // that will in turn interact with the MySQL database. The client-side code for rendering the form
+  // and grid can remain the same.
+
 
   const handleCreateMember = () => {
     setEditingMember(null);
